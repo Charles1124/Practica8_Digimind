@@ -12,6 +12,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import com.google.firebase.firestore.FirebaseFirestore
 import valle.carlos.mydigimind.R
 import valle.carlos.mydigimind.databinding.FragmentDashboardBinding
 import valle.carlos.mydigimind.ui.Task
@@ -40,6 +41,8 @@ class DashboardFragment : Fragment() {
 
         val btn_time: Button= root.findViewWithTag(R.id.btn_time)
 
+        var storage = FirebaseFirestore.getInstance()
+
         btn_time.setOnClickListener{
             val cal= Calendar.getInstance()
             val timeSetListener= TimePickerDialog.OnTimeSetListener{ timePicker, hour, minute ->
@@ -64,30 +67,25 @@ class DashboardFragment : Fragment() {
         val sunday= root.findViewById(R.id.sunday) as CheckBox
 
         done.setOnClickListener{
-            var days= ArrayList<String>()
-            var title= name.text.toString()
-            var time= btn_time.text.toString()
+            var apunte= hashMapOf(
+                "apunte" to name.text.toString(),
+                "lu" to monday.isChecked,
+                "ma" to tuesday.isChecked,
+                "mi" to wednesday.isChecked,
+                "ju" to thursday.isChecked,
+                "vi" to friday.isChecked,
+                "sa" to saturday.isChecked,
+                "do" to sunday.isChecked,
+                "tiempo" to btn_time.text.toString()
+            )
 
-            if(monday.isChecked)
-                days.add("Monday")
-            if(tuesday.isChecked)
-                days.add("Tuesday")
-            if(wednesday.isChecked)
-                days.add("Wednesday")
-            if(thursday.isChecked)
-                days.add("Thursday")
-            if(friday.isChecked)
-                days.add("Friday")
-            if(saturday.isChecked)
-                days.add("Saturday")
-            if(sunday.isChecked)
-                days.add("Sunday")
+            storage.collection("actividades").add(apunte).addOnSuccessListener { documentReference ->
+                Toast.makeText(root.context, "New task added!!", Toast.LENGTH_SHORT).show()
+            }
+                .addOnFailureListener { e ->
+                    Toast.makeText(root.context, "Error adding task.", Toast.LENGTH_SHORT).show()
 
-            var task= Task(title, days, time)
-
-            HomeFragment.task.add(task)
-
-            Toast.makeText(root.context, "New Task added", Toast.LENGTH_SHORT).show()
+                }
         }
 
         return root
